@@ -1,62 +1,88 @@
+var database ,dog,dog1,dog2
+var position
+//var form
+var feed,add
+var foodobject
+var Feedtime
+var Lastfeed
+//Create variables here
 
-const Engine = Matter.Engine;
-const World = Matter.World;
-const Bodies = Matter.Bodies;
-const Body = Matter.Body;
-const constraint=Matter.Constraint;
-
-var roo;
-var b1,b2,b3,b4,b5;
-var c1,c2,c3,c4,c5;
 function preload()
+
 {
-	
+  dogimg1 = loadImage("images/dogImg.png")
+  dogimg2 = loadImage("images/dogImg1.png")
+	//load images here
 }
 
 function setup() {
-	createCanvas(800,600);
+	createCanvas(1000, 500);
+  database = firebase.database();
+  console.log(database);
+ 
+  foodobject=new Food()
+  dog = createSprite(550,250,10,10);
+  dog.addImage(dogimg1)
+  dog.scale=0.2
+ 
+  var dogo = database.ref('Food');
+  dogo.on("value", readPosition, showError);
+  feed = createButton("FEED DRAGO")
+  feed.position(500,15)
+  feed.mousePressed(FeedDog)
+  add = createButton("ADD FOOD")
+  add.position(400,15)
+  add.mousePressed(AddFood)
 
-	engine = Engine.create();	
-	world = engine.world;
+} 
 
-	//Create the Bodies Here.
-	
-	b1 = new bob(200,100,50,rgb(245,181,23));
-	b2 = new bob(300,100,50,rgb(253,117,91));
-	b3 = new bob(400,100,50,rgb(7,153,218));
-	b4 = new bob(500,100,50,rgb(253,117,91));
-	b5 = new bob(600,100,50,rgb(245,181,23));
+function draw(){
+ background(46,139,87);
 
-	c1 = new chai(b1.body,{x:200,y:10});
-	c2 = new chai(b2.body,{x:300,y:10});
-	c3 = new chai(b3.body,{x:400,y:10});
-	c4 = new chai(b4.body,{x:500,y:10});
-	c5 = new chai(b5.body,{x:600,y:10});
-	
-	Engine.run(engine);
+ foodobject.display()
+ 
+ drawSprites();
   
+ fill(255,255,254);
+ textSize(15);
+
+drawSprites();
+}
+function readPosition(data){
+  position = data.val();
+  foodobject.updateFoodStock(position)
 }
 
-
-function draw() {
-  background(0);
-  
-  b1.display();
-  b2.display();
-  b3.display();
-  b4.display();
-  b5.display();
-
-  c1.display();
-  c2.display();
-  c3.display();
-  c4.display();
-  c5.display();
-
-  drawSprites();
+function showError(){
+  console.log("Error in writing to the database");
 }
 
-function mouseDragged()
-{
-	Matter.Body.setPosition(b1.body,{x:mouseX,y:mouseY});
+function writePosition(nazo){
+  if(nazo>0){
+    nazo=nazo-1
+  }
+  else{
+    nazo=0
+  }
+  database.ref('/').set({
+    'Food': nazo
+  })
+
+}
+function AddFood(){
+position++
+database.ref('/').update({
+  Food:position
+}
+
+)
+}
+function FeedDog(){
+
+dog.addImage(dogimg2)
+foodobject.updateFoodStock(foodobject.getFoodStock()-1)
+ database.ref('/').update({
+   Food:foodobject.getFoodStock(),
+   FeedTime:hour ()
+ })
 }
